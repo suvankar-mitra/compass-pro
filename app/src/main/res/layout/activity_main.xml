@@ -54,4 +54,25 @@
         android:layout_alignParentStart="true"
         android:padding="10dp" />
 
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_info_black_24px"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:id="@+id/imageButton"
+        android:background="@android:color/transparent"
+        android:padding="5dp"
+        android:onClick="drawInfoFragment"/>
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_share_black_24dp"
+        android:layout_below="@+id/imageButton"
+        android:layout_alignStart="@+id/imageButton"
+        android:id="@+id/imageButton2"
+        android:background="@android:color/transparent"
+        android:padding="5dp" />
+
 </RelativeLayout>

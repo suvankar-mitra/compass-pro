@@ -8,9 +8,11 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
@@ -159,5 +161,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         super.onPause();
         mSensorManager.unregisterListener(this,mMagnet);
         mSensorManager.unregisterListener(this,mAccelerometer);
+    }
+
+    private static final int CONTENT_VIEW_ID = 10101010;
+
+    public void drawInfoFragment(View view) {
+        Toast.makeText(this, "We are here", Toast.LENGTH_SHORT).show();
+        FragmentManager fm = getSupportFragmentManager();
+        fm.beginTransaction().addToBackStack(this.getLocalClassName()).add(new InfoFragment(),InfoFragment.class.getName()).commit();
     }
 }
