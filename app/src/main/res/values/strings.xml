@@ -1,6 +1,8 @@
 <resources>
     <string name="app_name">Compass</string>
-
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="info_me">
+        <b><u>Compass Pro</u></b> is tool to search the magnetic north pole using your device\'s GeoMagnetic sensor and Accelerometer sensor.\n\n
+        The app will work as good as your device\'s sensors are working.\n\n
+        If you see <i>\"Calibrate your device\"</i>, point your device up skywards and move it in a 8 motion like the picture below.
+    </string>
 </resources>

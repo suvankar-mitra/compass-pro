@@ -163,11 +163,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         mSensorManager.unregisterListener(this,mAccelerometer);
     }
 
-    private static final int CONTENT_VIEW_ID = 10101010;
-
     public void drawInfoFragment(View view) {
-        Toast.makeText(this, "We are here", Toast.LENGTH_SHORT).show();
         FragmentManager fm = getSupportFragmentManager();
-        fm.beginTransaction().addToBackStack(this.getLocalClassName()).add(new InfoFragment(),InfoFragment.class.getName()).commit();
+        fm.beginTransaction().setCustomAnimations(R.anim.frag_enter_from_right, R.anim.frag_exit_to_left,
+                R.anim.frag_enter_from_left, R.anim.frag_exit_to_right)
+                .addToBackStack(this.getLocalClassName())
+                .replace(android.R.id.content,new InfoFragment())
+                .commit();
     }
 }
