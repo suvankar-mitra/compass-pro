@@ -3,6 +3,6 @@
     <string name="info_me">
         <b><u>Compass Pro</u></b> is tool to search the magnetic north pole using your device\'s GeoMagnetic sensor and Accelerometer sensor.\n\n
         The app will work as good as your device\'s sensors are working.\n\n
-        If you see <i>\"Calibrate your device\"</i>, point your device up skywards and move it in a 8 motion like the picture below.
+        If you see <i>\"Calibrate your device\"</i>, point your device up towards the sky and move it in a 8 figure like motion as shown in the picture below.
     </string>
 </resources>
