@@ -48,6 +48,45 @@
                 android:layout_centerHorizontal="true"
                 android:layout_marginStart="14dp"
                 android:layout_below="@+id/text"/>
+
+            <TextView
+                android:text="@string/credit"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/imageView2"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="25dp"
+                android:id="@+id/textView"
+                android:textColor="@android:color/darker_gray"
+                android:fontFamily="serif-monospace"
+                android:textAlignment="center"
+                android:textSize="10sp" />
+
+            <TextView
+                android:text="@string/credit2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/textView2"
+                android:layout_below="@+id/textView"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="15dp"
+                android:textAlignment="center"
+                android:textSize="8sp"
+                android:textColor="@android:color/darker_gray"
+                android:fontFamily="serif-monospace" />
+
+            <ImageButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_clear_black_24px"
+                android:layout_alignParentTop="true"
+                android:layout_alignParentEnd="true"
+                android:id="@+id/close"
+                android:background="@android:color/transparent"
+                android:layout_margin="5dp"
+                android:paddingLeft="15dp"
+                android:paddingBottom="15dp"
+                android:onClick="closeInfoFragment"/>
         </RelativeLayout>
     </ScrollView>
 

@@ -5,24 +5,30 @@
     android:id="@+id/activity_main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingBottom="@dimen/activity_vertical_margin"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
-    android:background="@drawable/background"
     tools:context="net.net16.suvankar.compass.MainActivity">
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:srcCompat="@drawable/background"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true"
+        android:id="@+id/background"
+        android:scaleType="centerCrop"
+        android:padding="-20dp" />
 
     <TextView
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/degreeView"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
         android:textSize="25sp"
-        android:fontFamily="serif-monospace"
-        android:textColor="@android:color/darker_gray"
+        android:fontFamily="cursive"
+        android:textColor="@color/common_google_signin_btn_text_light_pressed"
         android:textAlignment="center"
-        android:padding="10dp" />
+        android:padding="5dp"
+        android:background="@drawable/rounded_edge"
+        android:layout_marginBottom="5dp" />
 
     <ImageView
         android:layout_width="wrap_content"
@@ -32,14 +38,16 @@
         android:scaleType="fitCenter"
         android:layout_alignParentTop="true"
         android:layout_alignParentBottom="true"
-        android:layout_alignParentStart="true" />
+        android:layout_alignParentStart="true"
+        android:layout_margin="5dp" />
 
     <ImageView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:srcCompat="@drawable/arrow"
         android:layout_centerHorizontal="true"
-        android:id="@+id/arrow" />
+        android:id="@+id/arrow"
+        android:layout_marginTop="5dp" />
 
     <TextView
         android:layout_width="match_parent"
@@ -50,7 +58,8 @@
         android:textAlignment="center"
         android:layout_above="@+id/degreeView"
         android:layout_alignParentStart="true"
-        android:padding="10dp" />
+        android:padding="10dp"
+        android:fontFamily="cursive" />
 
     <ImageButton
         android:layout_width="wrap_content"
@@ -62,16 +71,45 @@
         android:background="@android:color/transparent"
         android:onClick="drawInfoFragment"
         android:paddingLeft="15dp"
-        android:paddingBottom="15dp" />
+        android:paddingBottom="5dp"
+        android:layout_marginTop="5dp"
+        android:layout_marginRight="5dp" />
+
+    <!--<ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_refresh"
+        android:id="@+id/refresh"
+        android:background="@android:color/transparent"
+        android:paddingBottom="5dp"
+        android:onClick="refreshBackground"
+        android:layout_alignTop="@+id/compassView"
+        android:layout_alignStart="@+id/compassView"
+        android:layout_marginLeft="5dp"
+        android:paddingRight="15dp" />-->
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_set_as_background"
+        android:id="@+id/imageButton3"
+        android:background="@android:color/transparent"
+        android:layout_marginRight="5dp"
+        android:paddingLeft="15dp"
+        android:paddingBottom="5dp"
+        android:onClick="setAsWallpaper"
+        android:layout_below="@+id/imageButton"
+        android:layout_alignParentEnd="true" />
 
     <!--<ImageButton
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:src="@drawable/ic_share_black_24dp"
-        android:layout_below="@+id/imageButton"
-        android:layout_alignStart="@+id/imageButton"
         android:id="@+id/imageButton2"
         android:background="@android:color/transparent"
-        android:padding="5dp" />-->
+        android:layout_below="@+id/refresh"
+        android:layout_alignStart="@+id/refresh"
+        android:paddingRight="15dp"
+        android:onClick="shareImage"/>-->
 
 </RelativeLayout>
