@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="net.net16.suvankar.compass">
-    <uses-permission android:name="android.permission.SET_WALLPAPER"/>
+    <!--<uses-permission android:name="android.permission.SET_WALLPAPER"/>-->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
 
