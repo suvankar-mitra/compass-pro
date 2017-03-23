@@ -1,20 +1,28 @@
 package net.net16.suvankar.compass;
 
+import android.Manifest;
 import android.app.WallpaperManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
+import android.hardware.GeomagneticField;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -33,9 +41,11 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements SensorEventListener {
+public class MainActivity extends AppCompatActivity implements SensorEventListener, LocationListener {
 
     private SensorManager mSensorManager;
     private Sensor mMagnet;
@@ -53,11 +63,20 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private ImageView arrow;
     private TextView strengthView;
     private ImageView background;
+    private ImageView locationView;
 
     //to smooth the sensor values
     static final float ALPHA = 0.05f; // if ALPHA = 1 OR 0, no filter applies.
-
-    private static boolean modernSkinActive = false;
+    
+    //to calculate true north
+    private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
+    private LocationManager locationManager;
+    private String provider;
+    private boolean userPermission = false;
+    private float latitude, longitude, altitude;
+    private GeomagneticField mGeomagneticField;
+    private double declination;
+    private boolean locationServiceOff = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,6 +99,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         strengthView = (TextView) findViewById(R.id.strength);
         arrow = (ImageView) findViewById(R.id.arrow);
         background = (ImageView) findViewById(R.id.background);
+        locationView = (ImageView) findViewById(R.id.location);
 
         //rescaling the arrow to fit the screen properly
         int width = (int) (getScreenWidth() / 6);
@@ -87,9 +107,43 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         Bitmap b = Bitmap.createScaledBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.arrow), width, height, true);
         arrow.setImageBitmap(b);
 
+        /*if(!locationServiceOff) {
+            Location locationView = getLastKnownLocation();
+            if (locationView != null) {
+                Log.d("Location","Provider " + provider + " has been selected.");
+                onLocationChanged(locationView);
+            } else {
+                Toast.makeText(this, "Location service is not available.", Toast.LENGTH_SHORT).show();
+            }
+        }*/
+        
         //firebase storage
         mStorageRef = FirebaseStorage.getInstance().getReference().child("hi_res_images/background.jpg"); // need exact file name
         getImageFromCloud();
+    }
+
+    //get last known locationView using gps or network provider
+    private Location getLastKnownLocation() {
+        getPermissionFromUser();
+        locationManager = (LocationManager) getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
+        List<String> providers = locationManager.getProviders(true);
+        Location bestLocation = null;
+        for (String provider : providers) {
+            if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                return null;
+            }
+            Location l = locationManager.getLastKnownLocation(provider);
+            Log.d("loc",l.toString());
+            if (l == null) {
+                continue;
+            }
+            if (bestLocation == null || l.getAccuracy() < bestLocation.getAccuracy()) {
+                bestLocation = l;
+                this.provider = provider;
+                //break;
+            }
+        }
+        return bestLocation;
     }
 
     //get background image from firebase cloud storage
@@ -110,14 +164,26 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 @Override
                 public void onFailure(@NonNull Exception exception) {
                     // Handle failed download
-                    Toast.makeText(MainActivity.this, "Could not download file", Toast.LENGTH_SHORT).show();
+                    //Toast.makeText(MainActivity.this, "Could not download file", Toast.LENGTH_SHORT).show();
                     imageFile = null;
                 }
             });
         } catch (IOException ioe) {
         }
+
+        if (imageFile == null) {
+            Bitmap bm = BitmapFactory.decodeResource(getResources(), R.drawable.background);
+            try {
+                imageFile = File.createTempFile("background", "jpg");
+                FileOutputStream fos = new FileOutputStream(imageFile);
+                bm.compress(Bitmap.CompressFormat.JPEG, 100, fos);
+                fos.close();
+            } catch (IOException e) {
+            }
+        }
     }
 
+    //for magnetic field sensor
     @Override
     public void onSensorChanged(SensorEvent event) {
         float azimut = 0;
@@ -144,9 +210,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             }
         }
 
-        // Do something with this sensor value.
         //degreeView.setText("sensor: "+lux);
-        float rotation = (float) (azimut * 360 / (2 * Math.PI));
+        float rotation = (float) ( (azimut * 360 / (2 * Math.PI)) + declination);
 
         int deg = 0;
         if (rotation > 0) {
@@ -177,9 +242,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         compassView.setRotation(-rotation);
     }
 
+    //for magnetic field sensor
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
-        if(accuracy<3) {
+        if (accuracy < 3) {
             Toast.makeText(this, "Please calibrate your device!", Toast.LENGTH_SHORT).show();
         }
     }
@@ -195,6 +261,77 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         return output;
     }
 
+    //for locationView
+    @Override
+    public void onLocationChanged(Location location) {
+        latitude = (float) (location.getLatitude());
+        longitude = (float) (location.getLongitude());
+        altitude = (float) (location.getAltitude());
+
+        mGeomagneticField = new GeomagneticField(latitude,longitude,altitude,System.currentTimeMillis());
+        declination = mGeomagneticField.getDeclination();
+        Log.d("loc","declination "+declination);
+    }
+
+    @Override
+    public void onStatusChanged(String provider, int status, Bundle extras) {
+
+    }
+
+    @Override
+    public void onProviderEnabled(String provider) {
+
+    }
+
+    @Override
+    public void onProviderDisabled(String provider) {
+    }
+
+    //get user permission for locationView access - we need this to get true north
+    private void getPermissionFromUser() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            Log.d("debug", "not granted");
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                    Manifest.permission.ACCESS_FINE_LOCATION)) {
+                showExplanation("Permission Needed", "Rationale", new String[]{Manifest.permission.ACCESS_FINE_LOCATION,Manifest.permission.ACCESS_COARSE_LOCATION}, PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
+            } else {
+                requestPermission(new String[]{Manifest.permission.ACCESS_FINE_LOCATION,Manifest.permission.ACCESS_COARSE_LOCATION}, PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
+            }
+        }
+    }
+
+    private void showExplanation(String title,
+                                 String message,
+                                 final String[] permission,
+                                 final int permissionRequestCode) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(title)
+                .setMessage(message)
+                .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        requestPermission(permission, permissionRequestCode);
+                    }
+                });
+        builder.create().show();
+    }
+
+    private void requestPermission(String[] permissionName, int permissionRequestCode) {
+        ActivityCompat.requestPermissions(this, permissionName, permissionRequestCode);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        switch (requestCode) {
+            case PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION: {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    userPermission = true;
+                }
+            }
+        }
+    }
+
     public static int getScreenWidth() {
         return Resources.getSystem().getDisplayMetrics().widthPixels;
     }
@@ -208,6 +345,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         super.onResume();
         mSensorManager.registerListener(this, mMagnet, SensorManager.SENSOR_DELAY_GAME);
         mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_GAME);
+        //for locationView service
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        if(locationManager!=null && provider!=null)
+            locationManager.requestLocationUpdates(provider, 400, 1, this);
     }
 
     @Override
@@ -215,6 +358,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         super.onPause();
         mSensorManager.unregisterListener(this, mMagnet);
         mSensorManager.unregisterListener(this, mAccelerometer);
+        //for locationView service
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        if(locationManager!=null)
+            locationManager.removeUpdates(this);
     }
 
     public void drawInfoFragment(View view) {
@@ -230,7 +379,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         getSupportFragmentManager().popBackStack();
     }
 
-    public void refreshBackground(View view) {
+/*    public void refreshBackground(View view) {
         Toast.makeText(this, "Refreshing background image...", Toast.LENGTH_SHORT).show();
         getImageFromCloud();
     }
@@ -267,7 +416,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Set wallpaper")
-                .setMessage("Do you want to set this image as your phone's homescreen wallpaper?")
+                .setMessage("Do you want to set the background image as your phone's homescreen wallpaper?")
                 .setPositiveButton("Yes", dialogClickListener)
                 .setNegativeButton("Cancel", dialogClickListener)
                 .show();
@@ -278,9 +427,55 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         sendIntent.setAction(Intent.ACTION_SEND);
         sendIntent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(imageFile));
         Log.d("share",Uri.fromFile(imageFile).toString());
-        sendIntent.setType("image/*");
+        sendIntent.setType("image*//*");
         startActivity(Intent.createChooser(sendIntent,"Share"));
+    }*/
+
+
+    public void locationServiceSwitch(View view) {
+        if(locationServiceOff) {
+            LocationManager service = (LocationManager) getSystemService(LOCATION_SERVICE);
+            boolean enabled = service
+                    .isProviderEnabled(LocationManager.GPS_PROVIDER)
+                    || service.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
+                    || service.isProviderEnabled(LocationManager.PASSIVE_PROVIDER);
+            // check if enabled and if not send user to the GSP settings
+            // Better solution would be to display a dialog and suggesting to
+            // go to the settings
+            if (!enabled) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle("Turn on Location service")
+                        .setMessage("Please turn the location service on from settings. Click ok to go to the Settings.")
+                        .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                                startActivity(intent);
+                            }
+                        });
+                builder.create().show();
+            }
+
+            locationServiceOff = false;
+            locationView.setImageResource(R.drawable.ic_location_on_black_24px);
+            Toast.makeText(this, "Magnetic declination correction is ON.", Toast.LENGTH_SHORT).show();
+        } else {
+            locationServiceOff = true;
+            locationView.setImageResource(R.drawable.ic_location_off_black_24px);
+            declination = 0;
+            Toast.makeText(this, "Magnetic declination correction is OFF.", Toast.LENGTH_SHORT).show();
+
+        }
+
+        if(!locationServiceOff) {
+            Location location = getLastKnownLocation();
+            if (location != null) {
+                Log.d("Location","Provider " + provider + " has been selected.");
+                onLocationChanged(location);
+            } else {
+                Toast.makeText(this, "Location service is not available.", Toast.LENGTH_SHORT).show();
+                locationServiceOff = true;
+                locationView.setImageResource(R.drawable.ic_location_off_black_24px);
+            }
+        }
     }
-
-
 }

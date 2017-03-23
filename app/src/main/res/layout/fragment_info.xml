@@ -48,12 +48,23 @@
                 android:layout_centerHorizontal="true"
                 android:layout_marginStart="14dp"
                 android:layout_below="@+id/text"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/textView3"
+                android:layout_below="@+id/imageView2"
+                android:textAlignment="center"
+                android:fontFamily="serif-monospace"
+                android:layout_centerHorizontal="true"
+                android:text="@string/location_info"
+                android:padding="10dp"
+                android:textColor="@android:color/white" />
 
             <TextView
                 android:text="@string/credit"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@+id/imageView2"
+                android:layout_below="@+id/imageView4"
                 android:layout_centerHorizontal="true"
                 android:layout_marginTop="25dp"
                 android:id="@+id/textView"
@@ -87,6 +98,14 @@
                 android:paddingLeft="15dp"
                 android:paddingBottom="15dp"
                 android:onClick="closeInfoFragment"/>
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_location_on_black_24px"
+                android:layout_below="@+id/textView3"
+                android:layout_centerHorizontal="true"
+                android:id="@+id/imageView4" />
         </RelativeLayout>
     </ScrollView>
 

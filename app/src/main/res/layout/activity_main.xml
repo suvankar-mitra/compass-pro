@@ -13,7 +13,7 @@
         android:layout_centerVertical="true"
         android:layout_centerHorizontal="true"
         android:id="@+id/background"
-        android:scaleType="centerCrop"
+        android:scaleType="fitXY"
         android:padding="-20dp" />
 
     <TextView
@@ -67,7 +67,7 @@
         android:src="@drawable/ic_info_black_24px"
         android:layout_alignParentTop="true"
         android:layout_alignParentEnd="true"
-        android:id="@+id/imageButton"
+        android:id="@+id/info_button"
         android:background="@android:color/transparent"
         android:onClick="drawInfoFragment"
         android:paddingLeft="15dp"
@@ -88,18 +88,31 @@
         android:layout_marginLeft="5dp"
         android:paddingRight="15dp" />-->
 
-    <ImageButton
+    <!--<ImageButton
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:src="@drawable/ic_set_as_background"
-        android:id="@+id/imageButton3"
+        android:id="@+id/wallpaper_set"
         android:background="@android:color/transparent"
         android:layout_marginRight="5dp"
         android:paddingLeft="15dp"
         android:paddingBottom="5dp"
         android:onClick="setAsWallpaper"
         android:layout_below="@+id/imageButton"
-        android:layout_alignParentEnd="true" />
+        android:layout_alignParentEnd="true" />-->
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_location_off_black_24px"
+        android:layout_below="@+id/info_button"
+        android:layout_alignParentEnd="true"
+        android:id="@+id/location"
+        android:background="@android:color/transparent"
+        android:layout_marginRight="5dp"
+        android:paddingBottom="5dp"
+        android:paddingLeft="15dp"
+        android:onClick="locationServiceSwitch"/>
 
     <!--<ImageButton
         android:layout_width="wrap_content"
